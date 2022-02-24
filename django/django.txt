@@ -1,0 +1,355 @@
+Django
+
+https://www.djangoproject.com/
+
+장고는 웹 앱을 쉽고 빠르게 만들어 주는 웹 프레임워크
+
+장고는 보안 기능이 강력하다. 
+
+장고는 여러 다양한 기능들이 기본적으로 제공된다. 
+
+장고는 쉽고 재미있다. 
+
+#1 파이썬 가상 환경 설정
+
+파이썬 프로젝트를 진행할 때 독립된 환경을 만들어준다. 예를 들면 2개 또는 3개의 프로젝트를 개발하고 관할 때 각각 독립적인 환경에서 프로젝트들을 진행해야할 경우가 있다. 
+cd..       디렉토리 하나 위로 가기
+md venvs   디렉토리 만들기 
+cd venvs   디렉토리로 들어가기
+
+파이썬 가상환경 셋팅
+python -m venv mysite
+
+mysite 이라는 이름의 가상환경
+
+C:\venvs\mysite\Scripts
+위 경로로 이동하여
+
+activate 을 입력하여 가상환경 진입
+
+(mysite) C:\venvs\mysite\Scripts>
+
+deactivate 을 입력하면 가상환경 나오기
+
+C:\venvs\mysite\Scripts>
+
+
+# 가상환경에 Django 설치
+(mysite) C:\venvs\mysite\Scripts>pip install django==3.1.3
+
+pip install django==3.1.3
+pip install django==4.0
+
+# 장고 프로젝트 생성
+장고의 프로젝트 개념은 하나의 사이트라고 보면 된다. 장고프로젝트를 생성하면 한개의 웹 사이트를 생성하는 것이다. 하나의 프로젝트 안에는 여러개의 앱을 만들게 된다. 장고에서의 앱은 사이트를 구성하는 특정 기능이 구현된 작업 단위를 의미한다. 
+
+프로젝트 생성위치
+(mysite) C:\projects\mysite>9:41 AM 2/24/2022
+
+장고 프로젝트 생성
+django-admin startproject config .
+( 끝에 점을 주의하자)
+
+# 설치 완료된 django 서버 돌리기
+python manage.py runserver
+
+
+
+# 크롬 브라우저에서 확인
+http://127.0.0.1:8000/
+( 로켓이 보이면 장고 셋팅 성공)
+
+
+# django 지역화(한글화)
+
+c:\project\mysite\config\settings.py
+
+
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'UTC'
+위를 찾아 아래로 변경
+LANGUAGE_CODE = 'ko-kr'
+TIME_ZONE = 'Asia/Seoul'
+
+
+
+# 앱 App
+
+프로젝트(사이트)에 기능(앱)을 추가해야 어떤 작업을 수행할 수 있다. 게시판기능, 회원관리기능 ....
+
+게시판 기능을 추가해 보자. 
+
+(mysite) C:\projects\mysite>
+
+django-admin startapp pybo
+
+
+
+브라우저에서 특정 주소로 접근하면
+http://127.0.0.1:8000/pybo/
+
+config 폴더의 urls.py 파일에서 요청된 /pybo 와 매핑된 views.py 파일의 index 함수를 호출한 결과를 브라우저에 보여준다. 
+
+
+
+# URL 분리
+pybo 앱에 관련된 것들은 모두 pybo 디렉토리 아래에 위치시키는 것이 바람직하다. 
+
+[config -  urls.py]
+
+from django.contrib import admin
+from django.urls import path, include
+# from pybo import views
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    # path('pybo/', views.index),
+    path('pybo/', include('pybo.urls')),
+]
+
+[pybo - urls.py] <- 새로 만들기
+
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path('', views.index),
+]
+
+
+[pybo - views.py] <- 수정
+
+from django.http import HttpResponse
+
+# Create your views here.
+
+def index(request):
+    return HttpResponse('Hello World')
+
+
+
+
+
+#
+python manage.py migrate 을 실행하여 장고가 기본적으로 설치한 여러가지 앱들을 적용(활성화)하자. 
+실행한 후에는 앱들 사용에 필요한 설정과 테이블등이 생성되어 사용 가능한 상태로 만들어진다. 
+
+
+
+
+# 모델
+장고는 모델 model 을 이용하여 기본적인 데이터베이스를 처리한다. 보통은 데이터베이스에 저장하고 조회할때 SQL 을 이용해야 하지만 장고는 SQL없이도 데이터를 쉽게 처리할수 있게 해준다. 
+
+[pybo - models.py] <- 수정
+
+
+from django.db import models
+
+
+class Question(models.Model) :
+    subject = models.CharField(max_length=100)
+    content = models.TextField()
+    create_date = models.DateTimeField()
+
+class Answer(models.Model) :
+    subject = models.ForeignKey(Question, on_delete=models.CASCADE)
+    content = models.TextField()
+    create_date = models.DateTimeField()
+
+Answer 모델 질문에 대한 답. 기존 모델 속성과 연결하기 위해 ForeignKey 를 사용하여 Question모델과 연결한다. 
+on_delete=models.CASCADE의 의미는 Question 이 삭제될 경우 Answer도 함께 삭제해라라는 의미.
+
+게시판 게시물을 저장할 테이블을 생성을 위해 먼저 앱을 등록한다. 
+c:\project\mysite\config\settings.py
+
+INSTALLED_APPS = [
+    'pybo.apps.PyboConfig',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+]
+
+c:\project\mysite\pybo\apps.py파일에 
+이름이 잘 등록되어 있는지만 확인( 별 문제 없음)
+
+from django.apps import AppConfig
+
+class PyboConfig(AppConfig):
+    name = 'pybo'
+
+
+[model 생성]
+python manage.py makemigrations
+
+결과
+Migrations for 'pybo':
+  pybo\migrations\0001_initial.py
+    - Create model Question
+    - Create model Answer
+
+[model 활성화]
+python manage.py migrate
+
+결과
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, pybo, sessions
+Running migrations:
+  Applying pybo.0001_initial... OK
+
+
+
+# 관리자 설정 (슈퍼유저)
+python manage.py createsuperuser
+
+ 
+admin
+admin@mysite.com
+0000
+0000
+
+관리자 페이지 진입
+
+http://127.0.0.1:8000/admin/
+
+
+
+모델을 관리자 페이지에 등록
+
+[pybo - admin.py]
+
+from django.contrib import admin
+from .models import Question
+# Register your models here.
+
+class QuestionAdmin(admin.ModelAdmin):
+    search_field = ['subject']
+
+admin.site.register(Question)
+
+
+[게시물 제목에 id값 대신 제목이 나타나도록 수정]
+
+class Question(models.Model) :
+    subject = models.CharField(max_length=100)
+    content = models.TextField()
+    create_date = models.DateTimeField()
+
+    def __str__(self):
+        return self.subject
+
+
+
+
+
+
+
+
+
+# 화면 출력을 위한 질문 목록 만들기
+
+[pybo - views.py]
+
+from django.shortcuts import render
+from .models import Question
+
+def index(request):
+    """
+    게시판 목록 출력
+    """
+    question_list = Question.objects.order_by('-create_date')
+    context = {'question_list':question_list}
+    return render(request, 'pybo/question_list.html', context)
+
+    # 질문 목록 데이터들은 Question.objects.order_by('-create_date')
+    # 로 얻어 온다.  order_by 는 조회 결과를 정렬하는 함수이다. 
+    # -는 역순으로 정렬한다. 게시물은 보통 최신 순으로 보기때문에 작성일시
+    # 역순으로 정렬했다. 
+
+
+
+
+#  템플릿 디렉터리 설정
+
+  화면에 띄우는 html  등의 파일 위치 설정
+
+[config - settings.py]
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],
+        'APP_DIRS': True,
+
+
+def index(request):
+    """
+    게시판 목록 출력
+    """
+    question_list = Question.objects.order_by('-create_date')
+    context = {'question_list':question_list}
+    return render(request, 'pybo/question_list.html', context)
+
+    # 질문 목록 데이터들은 Question.objects.order_by('-create_date')
+    # 로 얻어 온다.  order_by 는 조회 결과를 정렬하는 함수이다. 
+    # -는 역순으로 정렬한다. 게시물은 보통 최신 순으로 보기때문에 작성일시
+    # 역순으로 정렬했다. 
+
+
+
+
+def detail(request, question_id):
+    """
+    게시판 내용 출력
+    """
+    question = Question.objects.get(id=question_id)
+    context = {'question':question}
+    return render(request, 'pybo/question_detail.html', context)
+
+
+
+
+{% if question_list %}
+<!-- 질목 목록이 있다면  -->
+    <ul>
+    {% for question in question_list %}
+        <li><a href="/pybo/{{ question.id }}/">{{ question.subject }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+<!-- 질문이 하나도 없다면  -->
+    <p>질문이 없습니다.</p>
+{% endif %}
+
+
+
+
+<h1>{{ question.subject }}</h1>
+
+<div>
+    {{ question.content }}
+</div>
+ 
+
+
+
+
+# 화면 꾸미기 
+
+bootstrap
+
+구글 창 에서 bootstrap min css 검색 
+3번째 항목
+Download · Bootstrap v5.0
+
+아래 내용 카피
+CDN via jsDelivr 에 있음
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+
+
+
