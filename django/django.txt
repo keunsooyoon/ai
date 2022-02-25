@@ -353,3 +353,42 @@ CDN via jsDelivr 에 있음
 
 
 
+# 로그인과 로그아웃
+
+
+config - settings.py
+
+이미 기본적으로 회원관리가 설치되어있다. 
+
+# Application definition
+
+INSTALLED_APPS = [
+    'pybo.apps.PyboConfig',
+    'django.contrib.admin',
+    'django.contrib.auth',   <--
+
+회원 관리를 위한 새로운 앱생성
+(가상환경 여부 확인 할것)
+C:\venvs\mysite\Scripts>activate
+
+common 이라는 앱을 신규 생성
+(mysite) C:\projects\mysite>
+django-admin startapp common
+
+
+앱 등록
+config - settings.py
+
+INSTALLED_APPS = [
+    'common.apps.CommonConfig',  <--
+    'pybo.apps.PyboConfig',
+    'django.contrib.admin',
+
+url 경로 등록
+
+config - urls.py
+
+
+
+
+
